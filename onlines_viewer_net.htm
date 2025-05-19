@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Split any article into beginning or custom-sized chunks. Blogger-ready, SEO-optimized, and fully responsive tool for bloggers and writers." />
+  <title>Article Splitter – Blogger & SEO Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    textarea, input, select, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .output {
+      margin-top: 20px;
+    }
+    .chunk {
+      background: #f0f0f0;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      position: relative;
+    }
+    .chunk-content {
+      white-space: pre-wrap;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .copy-btn svg {
+      width: 16px;
+      height: 16px;
+      display: none;
+    }
+    .copy-btn.copied svg {
+      display: inline;
+    }
+    .popup {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    .label-select {
+      font-weight: bold;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Article Splitter</h1>
+    <textarea id="article" rows="10" placeholder="Paste your full article here..."></textarea>
+    <label class="label-select" for="mode">Select Split Type:</label>
+    <select id="mode">
+      <option value="intro">Split First X Words Only</option>
+      <option value="chunk">Chunk Split – Divide article into sections of X words</option>
+    </select>
+    <input type="number" id="wordCount" placeholder="Enter word count (e.g., 100 or 1000)" />
+    <button onclick="splitArticle()">Split Article</button>
+
+    <div id="output" class="output"></div>
+  </div>
+
+  <div id="popup" class="popup">Copied to clipboard!</div>
+
+  <script>
+    function splitArticle() {
+      const article = document.getElementById("article").value.trim();
+      const wordCount = parseInt(document.getElementById("wordCount").value);
+      const mode = document.getElementById("mode").value;
+      const output = document.getElementById("output");
+      output.innerHTML = "";
+
+      if (!article || !wordCount || wordCount <= 0) {
+        alert("Please paste an article and enter a valid word count.");
+        return;
+      }
+
+      const words = article.match(/\S+/g) || [];
+
+      if (mode === "intro") {
+        const intro = words.slice(0, wordCount).join(" ");
+        const rest = words.slice(wordCount).join(" ");
+        output.appendChild(createChunk(`First ${wordCount} Words`, intro));
+        output.appendChild(createChunk("Remaining Content", rest));
+      } else if (mode === "chunk") {
+        let index = 0, chunkNum = 1;
+        while (index < words.length) {
+          const chunkWords = words.slice(index, index + wordCount).join(" ");
+          output.appendChild(createChunk(`Chunk ${chunkNum}`, chunkWords));
+          index += wordCount;
+          chunkNum++;
+        }
+      }
+    }
+
+    function createChunk(title, text) {
+      const div = document.createElement("div");
+      div.className = "chunk";
+
+      const h3 = document.createElement("h3");
+      h3.innerText = title;
+
+      const content = document.createElement("div");
+      content.className = "chunk-content";
+      content.textContent = text;
+
+      const btn = document.createElement("button");
+      btn.innerHTML = 'Copy <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+      btn.className = "copy-btn";
+
+      btn.onclick = () => {
+        copyToClipboard(btn);
+      };
+
+      div.appendChild(h3);
+      div.appendChild(content);
+      div.appendChild(btn);
+      return div;
+    }
+
+    function copyToClipboard(button) {
+      const content = button.parentElement.querySelector(".chunk-content");
+      const text = content.innerText;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const popup = document.getElementById("popup");
+        popup.style.display = "block";
+        button.classList.add("copied");
+        button.innerHTML = 'Copied <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+        setTimeout(() => {
+          popup.style.display = "none";
+          button.classList.remove("copied");
+          button.innerHTML = 'Copy <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
